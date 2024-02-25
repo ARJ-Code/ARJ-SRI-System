@@ -3,17 +3,15 @@ from typing import List
 import json
 import spacy
 import gensim
-import logging
 import numpy as np
 from gensim.matutils import corpus2dense
 
 nlp = spacy.load('en_core_web_sm')
-CANT = 10
 
 
 class Vectorial(Model):
-    def __init__(self, corpus: Corpus) -> None:
-        super.__init__(corpus)
+    def __init__(self) -> None:
+        super.__init__()
 
     def __tokenize_doc(doc):
         """
@@ -50,9 +48,9 @@ class Vectorial(Model):
 
         return np.dot(vec_1, vec_2) / v
 
-    def build(self):
+    def build(self, documents: List[Document]):
         tokenized_docs = [Vectorial.__tokenize_doc(
-            doc.text.lower()) for doc in self.corpus.documents]
+            doc.text.lower()) for doc in documents]
 
         dictionary = gensim.corpora.Dictionary(tokenized_docs)
 
@@ -60,7 +58,6 @@ class Vectorial(Model):
 
         tfidf = gensim.models.TfidfModel(corpus)
 
-        logging.info('Save data')
         tfidf.save("data/tfidf.model")
         dictionary.save("data/dictionary.dict")
         vector_repr = [tfidf[doc] for doc in corpus]
@@ -68,13 +65,13 @@ class Vectorial(Model):
         data_build = {}
 
         for i in range(len(vector_repr)):
-            data_build[self.corpus.documents[i].title] = vector_repr[i]
+            data_build[documents[i].title] = vector_repr[i]
 
         f = open('data/data_build.json', 'w')
         json.dump(data_build, f)
         f.close()
 
-    def load(self):
+    def _load(self):
 
         # Cargar el modelo TF-IDF y el diccionario
         self.tfidf = gensim.models.TfidfModel.load("data/tfidf.model.news")
@@ -85,7 +82,7 @@ class Vectorial(Model):
         self.data_build = json.load(f)
         f.close()
 
-    def query(self, query: str) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Document]:
         query_tokens = Vectorial.__tokenize_doc(query)
 
         # Convertir la consulta en su representación BoW
@@ -96,11 +93,11 @@ class Vectorial(Model):
 
         # Calcular la similitud entre la consulta y cada documento en el corpus
         similarities = [Vectorial.__cosine_similarity(query_tfidf, self.data_build[doc.title], self.dictionary)
-                        for doc in self.corpus.documents]
+                        for doc in self.documents]
 
         # Ordenar las noticias por similitud y seleccionar las más relevantes
-        top_n_indices = np.argsort(similarities)[-CANT:]
+        top_n_indices = np.argsort(similarities)[-cant:]
 
-        top_n = [self.corpus.documents[ind]
+        top_n = [self.documents[ind]
                  for ind in top_n_indices if similarities[ind] != 0]
         top_n.reverse()

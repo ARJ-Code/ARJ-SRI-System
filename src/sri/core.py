@@ -18,17 +18,21 @@ class Corpus(ABC):
 
 
 class Model(ABC):
-    def __init__(self, corpus: Corpus) -> None:
-        self.corpus: Corpus = corpus
+    def __init__(self) -> None:
+        self.documents: List[Document] = []
 
     @abstractmethod
-    def build(self):
+    def build(self, documents: List[Document]):
+        pass
+
+    def load(self, documents: List[Document]):
+        self.documents = documents
+        self._load()
+
+    @abstractmethod
+    def _load(self):
         pass
 
     @abstractmethod
-    def load(self):
-        pass
-
-    @abstractmethod
-    def query(self, query: str) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Document]:
         pass
