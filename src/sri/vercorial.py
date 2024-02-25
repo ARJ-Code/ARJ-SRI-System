@@ -101,3 +101,6 @@ class Vectorial(Model):
         top_n = [self.documents[ind]
                  for ind in top_n_indices if similarities[ind] != 0]
         top_n.reverse()
+
+    def words(self) -> List[str]:
+        return list(self.dictionary.token2id.keys())

@@ -36,3 +36,7 @@ class Model(ABC):
     @abstractmethod
     def query(self, query: str, cant: int) -> List[Document]:
         pass
+
+    @abstractmethod
+    def words(self) -> List[str]:
+        pass
