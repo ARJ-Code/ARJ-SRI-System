@@ -22,7 +22,7 @@ class Corpus(ABC):
 
 class QueryBuilder(ABC):
     @abstractmethod
-    def build(self, tokens: List[str], words: List[str]):
+    def build(self, tokens: List[str], words: List[str]) -> List[str]:
         pass
 
 
