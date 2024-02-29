@@ -17,7 +17,7 @@ class SRISystem:
         self.corpus.load()
         self.model.load(self.corpus.documents)
 
-        self.__create_trie(self.model.words())
+        self.__create_trie(self.model.vocabulary)
 
     def __create_trie(self, words: List[str]):
         for word in words:

@@ -1,4 +1,4 @@
-from .core import Model, Corpus, Document
+from .core import Model, QueryBuilder, Document
 from typing import List, Tuple
 import json
 import gensim
@@ -7,8 +7,9 @@ from gensim.matutils import corpus2dense
 
 
 class Vectorial(Model):
-    def __init__(self) -> None:
+    def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super.__init__()
+        self.query_builders: List[QueryBuilder] = query_builders
 
     def __dense_vect(vect, dictionary):
         """
@@ -37,6 +38,7 @@ class Vectorial(Model):
         return np.dot(vec_1, vec_2) / v
 
     def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         dictionary = gensim.corpora.Dictionary(
             [doc for _, doc in tokenized_docs])
 
@@ -60,17 +62,22 @@ class Vectorial(Model):
     def _load(self):
 
         # Cargar el modelo TF-IDF y el diccionario
-        self.tfidf = gensim.models.TfidfModel.load("data/tfidf.model.news")
+        self.tfidf = gensim.models.TfidfModel.load("data/tfidf.model")
         self.dictionary = gensim.corpora.Dictionary.load(
-            "data/dictionary.dict.news")
+            "data/dictionary.dict")
 
         f = open('data/data_build.json')
         self.data_build = json.load(f)
         f.close()
 
-    def _query(self, query_tokens: List[str], cant: int) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Document]:
+        query_tokens = Model._tokenize_doc(query)
+
+        for builder in self.query_builders:
+            query_tokens = builder.build(query_tokens, self.vocabulary)
+
         # Convertir la consulta en su representación BoW
-        query_bow = self.dictionary.doc2bow(query_tokens)
+        query_bow = self.dictionary.doc2bow(Model._lemma(query_tokens))
 
         # Calcular la representación TF-IDF de la consulta
         query_tfidf = self.tfidf[query_bow]
@@ -85,6 +92,3 @@ class Vectorial(Model):
         top_n = [self.documents[ind]
                  for ind in top_n_indices if similarities[ind] != 0]
         top_n.reverse()
-
-    def words(self) -> List[str]:
-        return list(self.dictionary.token2id.keys())

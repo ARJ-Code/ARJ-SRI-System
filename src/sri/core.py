@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 import spacy
+import gensim
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -27,9 +28,9 @@ class QueryBuilder(ABC):
 
 
 class Model(ABC):
-    def __init__(self, queryBuilders: List[QueryBuilder] = []) -> None:
+    def __init__(self) -> None:
         self.documents: List[Document] = []
-        self.queryBuilders: List[QueryBuilder] = queryBuilders
+        self.vocabulary: List[str] = []
 
     def _tokenize_doc(doc) -> List[str]:
         """
@@ -44,22 +45,26 @@ class Model(ABC):
         return [vocab.create_token(token).lemma_ for token in tokens]
 
     def build(self, documents: List[Document]):
-        tokenized_docs = [(doc.title, Model._lemma(Model._tokenize_doc(
-            doc.text.lower()))) for doc in documents]
+        tokenized_docs = [(doc.title, Model._tokenize_doc(
+            doc.text.lower())) for doc in documents]
+
+        dict_voc = gensim.corpora.Dictionary(
+            [doc for _, doc in tokenized_docs])
+        dict_voc.save('data/vocabulary.dict')
 
         self._build(tokenized_docs)
 
-    def query(self, query: str, cant: int) -> List[Document]:
-        query_tokens = Model._tokenize_doc(query)
-
-        for builder in self.queryBuilders:
-            query_tokens = builder.build(query_tokens, self.words())
-
-        self._query(Model._lemma(query_tokens), cant)
-
     def load(self, documents: List[Document]):
+        dict_voc = gensim.corpora.Dictionary.load(
+            "data/vocabulary,dict")
+        self.vocabulary = list(dict_voc.token2id.keys())
+
         self.documents = documents
         self._load()
+
+    @abstractmethod
+    def query(self, query: str, cant: int) -> List[Document]:
+        self._query(Model._lemma(query), cant)
 
     @abstractmethod
     def _build(self, tokenized_docs: List[List[str]]):
@@ -67,12 +72,4 @@ class Model(ABC):
 
     @abstractmethod
     def _load(self):
-        pass
-
-    @abstractmethod
-    def _query(self, query: str, cant: int) -> List[Document]:
-        pass
-
-    @abstractmethod
-    def words(self) -> List[str]:
         pass
