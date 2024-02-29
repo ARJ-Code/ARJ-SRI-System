@@ -1,26 +1,14 @@
 from .core import Model, Corpus, Document
-from typing import List
+from typing import List, Tuple
 import json
-import spacy
 import gensim
 import numpy as np
 from gensim.matutils import corpus2dense
-
-nlp = spacy.load('en_core_web_sm')
 
 
 class Vectorial(Model):
     def __init__(self) -> None:
         super.__init__()
-
-    def __tokenize_doc(doc):
-        """
-        Función que tokeniza un documento y elimina las palabras vacías
-        doc: Documento a tokenizar
-        """
-
-        return [token.lemma_ for token in nlp(
-            doc.lower()) if token.is_alpha and not token.is_stop]
 
     def __dense_vect(vect, dictionary):
         """
@@ -48,13 +36,11 @@ class Vectorial(Model):
 
         return np.dot(vec_1, vec_2) / v
 
-    def build(self, documents: List[Document]):
-        tokenized_docs = [Vectorial.__tokenize_doc(
-            doc.text.lower()) for doc in documents]
+    def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+        dictionary = gensim.corpora.Dictionary(
+            [doc for _, doc in tokenized_docs])
 
-        dictionary = gensim.corpora.Dictionary(tokenized_docs)
-
-        corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
+        corpus = [dictionary.doc2bow(doc) for _, doc in tokenized_docs]
 
         tfidf = gensim.models.TfidfModel(corpus)
 
@@ -65,7 +51,7 @@ class Vectorial(Model):
         data_build = {}
 
         for i in range(len(vector_repr)):
-            data_build[documents[i].title] = vector_repr[i]
+            data_build[tokenized_docs[i][0]] = vector_repr[i]
 
         f = open('data/data_build.json', 'w')
         json.dump(data_build, f)
@@ -82,9 +68,7 @@ class Vectorial(Model):
         self.data_build = json.load(f)
         f.close()
 
-    def query(self, query: str, cant: int) -> List[Document]:
-        query_tokens = Vectorial.__tokenize_doc(query)
-
+    def _query(self, query_tokens: List[str], cant: int) -> List[Document]:
         # Convertir la consulta en su representación BoW
         query_bow = self.dictionary.doc2bow(query_tokens)
 
