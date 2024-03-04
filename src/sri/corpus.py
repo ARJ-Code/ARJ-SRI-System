@@ -1,15 +1,16 @@
 import csv
 import json
 from typing import List
-from src.sri.core import Corpus
-from src.sri.movie import Movie
+from .core import Corpus
+from .movie import Movie
+
 
 class MovieCorpus(Corpus):
     def __init__(self) -> None:
         self.path: str = 'data/movies_db/movies_metadata.csv'
         self.documents: List[Movie] = []
 
-    def load(self) -> List[Movie]:
+    def load(self, cant: int = -1) -> List[Movie]:
         def process_genres(genres_str):
             genres_str = genres_str.replace("'", '"')
             # remove the brackets
@@ -21,7 +22,7 @@ class MovieCorpus(Corpus):
                 genres_str[i] = genres_str[i] + '}'
             # we need to convert it to a dictionary
             genres = []
-            try :
+            try:
                 genres = [json.loads(genre) for genre in genres_str]
             except:
                 pass
@@ -30,7 +31,13 @@ class MovieCorpus(Corpus):
 
         with open(self.path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
+
+            ind = 0
+
             for row in reader:
+                if cant == ind:
+                    break
+
                 self.documents.append(Movie(
                     row['title'],
                     row['overview'],
@@ -39,4 +46,6 @@ class MovieCorpus(Corpus):
                     row['popularity'],
                     row['vote_average']
                 ))
+
+                ind += 1
         return self.documents

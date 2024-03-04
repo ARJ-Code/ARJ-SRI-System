@@ -17,7 +17,7 @@ class Corpus(ABC):
         self.documents: List[Document] = []
 
     @abstractmethod
-    def load(self) -> List[Document]:
+    def load(self, cant: int = -1) -> List[Document]:
         pass
 
 
@@ -40,9 +40,8 @@ class Model(ABC):
         return [token.text for token in nlp(
             doc.lower()) if token.is_alpha and not token.is_stop]
 
-    def _lemma(tokens) -> List[str]:
-        vocab = spacy.Vocab()
-        return [vocab.create_token(token).lemma_ for token in tokens]
+    def _lemma(tokens: List[str]) -> List[str]:
+        return [nlp(token)[0].lemma_ for token in tokens]
 
     def build(self, documents: List[Document]):
         tokenized_docs = [(doc.title, Model._tokenize_doc(

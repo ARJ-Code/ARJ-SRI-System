@@ -11,7 +11,7 @@ test:
 
 .PHONY: build
 build:
-	python src/build.py $(cant_lines)
+	python src/main.py $(cant_lines)
 
 .PHONY: models
 models:

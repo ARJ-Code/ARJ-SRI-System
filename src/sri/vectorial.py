@@ -8,7 +8,7 @@ from gensim.matutils import corpus2dense
 
 class Vectorial(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
-        super.__init__()
+        super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
     def __dense_vect(vect, dictionary):
