@@ -10,11 +10,10 @@ import spacy
 
 nlp = spacy.load('en_core_web_sm')
 
+
 class Boolean (Model):
-
-
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
-        super.__init__()
+        super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
     def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
@@ -26,6 +25,8 @@ class Boolean (Model):
         corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
         dictionary.save("data/boolean_dictionary.dict")
 
+        corpus = [dictionary.doc2bow(doc) for _,doc in tokenized_docs]
+        dictionary.save("data/dictionary.dict")
 
         boolean_data_build = {}
 
@@ -48,20 +49,20 @@ class Boolean (Model):
     
     def tokenize_query(self, query: str) -> List[str]:
         exceptions = ["and", "or", "not", "(", ")", "&", "|", "!"]
-        query = [token.lemma_ for token in nlp(query.lower()) if token.lemma in exceptions or (not token.is_stop and token.is_alpha)]
+        query = [token.lemma_ for token in nlp(query.lower(
+        )) if token.lemma in exceptions or (not token.is_stop and token.is_alpha)]
         return query
-    
 
-    def query_to_DNF (self, query: str) -> str:
+    def query_to_DNF(self, query: str) -> str:
         query = self.tokenize_query(query)
-        
+
         for builder in self.query_builders:
             query = builder.build(query)
 
         query = sympify(query)
         query = to_dnf(query, True)
         return str(query)
-    
+
     def query(self, query: str, cant: int) -> List[Document]:
         query = self.query_to_DNF(query)
         clauses = query.split(" | ")
@@ -82,8 +83,8 @@ class Boolean (Model):
                     else:
                         if word not in self.boolean_data_build[self.documents[i].title]:
                             clause_matched = False
-                            break            
+                            break
                 if clause_matched:
                     matching_docs.append(self.documents[i])
                     break
-        return matching_docs                                        
+        return matching_docs

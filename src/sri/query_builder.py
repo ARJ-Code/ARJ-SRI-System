@@ -1,4 +1,4 @@
-from PyDictionary import PyDictionary
+from .synonimous import SynonimousDictionary
 from typing import List
 from .core import QueryBuilder
 import spacy
@@ -42,7 +42,7 @@ class BooleanQueryBuilder(QueryBuilder):
 
 class Synonymous:
     def build(self, tokens: List[str], words: List[str]):
-        dictionary = PyDictionary()
+        dictionary = SynonimousDictionary()
         result = tokens.copy()
 
         q1 = set(tokens)

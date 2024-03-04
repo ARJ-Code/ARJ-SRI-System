@@ -4,9 +4,22 @@ import json
 import gensim
 import numpy as np
 from gensim.matutils import corpus2dense
+from gensim.models import LsiModel
+from .vectorial import Vectorial
 
+import numpy as np
 
-class Vectorial(Model):
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
+class LSI(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
@@ -18,31 +31,32 @@ class Vectorial(Model):
 
         corpus = [dictionary.doc2bow(doc) for _, doc in tokenized_docs]
 
-        tfidf = gensim.models.TfidfModel(corpus)
+        # Aplicar LSI
+        num_topics = 100  # Número de temas que quieres extraer
+        lsi = LsiModel(corpus, id2word=dictionary, num_topics=num_topics)
 
-        tfidf.save("data/tfidf.model")
+        lsi.save("data/lsi.model")
         dictionary.save("data/dictionary.dict")
-        vector_repr = [tfidf[doc] for doc in corpus]
 
+        # Guardar la representación LSI de cada documento
+        vector_repr = [lsi[doc] for doc in corpus]
+     
         data_build = {}
 
         for i in range(len(vector_repr)):
             data_build[tokenized_docs[i][0]] = vector_repr[i]
 
-        f = open('data/data_build.json', 'w')
-        json.dump(data_build, f)
-        f.close()
+        with open('data/data_build.json', 'w') as f:
+            json.dump(data_build, f,cls=NpEncoder)
 
     def _load(self):
-
-        # Cargar el modelo TF-IDF y el diccionario
-        self.tfidf = gensim.models.TfidfModel.load("data/tfidf.model")
+        # Cargar el modelo LSI y el diccionario
+        self.lsi = LsiModel.load("data/lsi.model")
         self.dictionary = gensim.corpora.Dictionary.load(
             "data/dictionary.dict")
 
-        f = open('data/data_build.json')
-        self.data_build = json.load(f)
-        f.close()
+        with open('data/data_build.json') as f:
+            self.data_build = json.load(f)
 
     def query(self, query: str, cant: int) -> List[Document]:
         query_tokens = Model._tokenize_doc(query)
@@ -50,16 +64,12 @@ class Vectorial(Model):
         for builder in self.query_builders:
             query_tokens = builder.build(query_tokens, self.vocabulary)
 
-        # Convertir la consulta en su representación BoW
-        query_bow = self.dictionary.doc2bow(Model._lemma(query_tokens))
+        # Convertir la consulta en su representación LSI
+        query_lsi = self.lsi[self.dictionary.doc2bow(
+            Model._lemma(query_tokens))]
 
-        # Calcular la representación TF-IDF de la consulta
-        query_tfidf = self.tfidf[query_bow]
-
-        # gensim.matutils.cossim(query_lsi, doc_lsi)
-
-        # Calcular la similitud entre la consulta y cada documento en el corpus
-        similarities = [gensim.matutils.cossim(query_tfidf, self.data_build[doc.title])
+        # Calcular la similitud entre la consulta LSI y cada documento LSI en el corpus
+        similarities = [gensim.matutils.cossim(query_lsi,self.data_build[doc.title])
                         for doc in self.documents]
 
         # Ordenar las noticias por similitud y seleccionar las más relevantes
