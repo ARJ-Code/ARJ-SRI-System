@@ -1,8 +1,8 @@
-cant_lines ?= 1000
+cant_lines ?= 100
 
 .PHONY: dev
 dev:
-	streamlit run src/app.py
+	streamlit run src/app.py $(cant_lines)
 
 .PHONY: test
 test:

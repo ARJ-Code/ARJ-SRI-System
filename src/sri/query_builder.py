@@ -13,8 +13,10 @@ class SpellingChecker(QueryBuilder):
         for token in tokens:
             w = process.extractOne(token, words, score_cutoff=70)
 
-            if w and w[0] in q:
+            if w and w[0] not in q:
                 result.append(w[0])
+
+        return result
 
 
 class Synonymous:

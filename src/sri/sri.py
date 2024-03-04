@@ -13,8 +13,8 @@ class SRISystem:
         self.corpus.load()
         self.model.build(self.corpus.documents)
 
-    def load(self):
-        self.corpus.load()
+    def load(self,cant_lines:int=-1):
+        self.corpus.load(cant_lines)
         self.model.load(self.corpus.documents)
 
         self.__create_trie(self.model.vocabulary)
