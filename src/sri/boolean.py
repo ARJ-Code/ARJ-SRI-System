@@ -16,35 +16,37 @@ class Boolean (Model):
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
-    def _build(self, tokenized_docs: List[List[str]]):
-        tokenized_docs = [(t, doc) for t, doc in tokenized_docs]
-
+    def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
+        
         dictionary = gensim.corpora.Dictionary(
             [doc for _, doc in tokenized_docs])
+        
+        corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
+        dictionary.save("data/boolean_dictionary.dict")
 
         corpus = [dictionary.doc2bow(doc) for _,doc in tokenized_docs]
         dictionary.save("data/dictionary.dict")
 
-        data_build = {}
+        boolean_data_build = {}
 
-        # duda
-        for doc in corpus:
-            data_build[tokenized_docs[doc][0]] = corpus[doc]
-
-        f = open('data/data_build.json', 'w')
-        json.dump(data_build, f)
+        for i in range (len(tokenized_docs)):
+            boolean_data_build[tokenized_docs[i][0]] = set(tokenized_docs[i][1])
+        
+        
+        f = open('data/boolean_data_build.json', 'w')
+        json.dump(boolean_data_build, f)
         f.close()
-
-    # duda
+    
     def _load(self):
         self.dictionary = gensim.corpora.Dictionary.load(
-            "data/dictionary.dict")
-
-        f = open('data/data_build.json')
-        data_build = json.load(f)
+            "data/boolean_dictionary.dict")
+        
+        f = open('data/boolean_data_build.json')
+        boolean_data_build = json.load(f)
         f.close()
-        return data_build
-
+        return boolean_data_build
+    
     def tokenize_query(self, query: str) -> List[str]:
         exceptions = ["and", "or", "not", "(", ")", "&", "|", "!"]
         query = [token.lemma_ for token in nlp(query.lower(
@@ -65,8 +67,8 @@ class Boolean (Model):
         query = self.query_to_DNF(query)
         clauses = query.split(" | ")
         matching_docs = []
-        # duda
-        for i, doc in self.documents:
+
+        for i in range(len(self.documents)):
             for clause in clauses:
                 if clause[0] == "(":
                     clause = clause[1:-1]
@@ -75,11 +77,11 @@ class Boolean (Model):
 
                 for word in clause.split(" & "):
                     if word[0] == "!":
-                        if word[1:] in doc:
+                        if word[1:] in self.boolean_data_build[self.documents[i].title]:
                             clause_matched = False
                             break
                     else:
-                        if word not in doc:
+                        if word not in self.boolean_data_build[self.documents[i].title]:
                             clause_matched = False
                             break
                 if clause_matched:
