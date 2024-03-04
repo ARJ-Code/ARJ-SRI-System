@@ -3,8 +3,9 @@ from streamlit_searchbox import st_searchbox
 from sri.sri import SRISystem
 from sri.vectorial import Vectorial
 from sri.lsi import LSI
+from sri.boolean import Boolean
 from sri.corpus import MovieCorpus
-from sri.query_builder import SpellingChecker
+from sri.query_builder import SpellingChecker, Synonymous
 import sys
 
 cant_lines = -1
@@ -15,14 +16,31 @@ except:
 
 
 corpus = MovieCorpus()
-vectorial_model = Vectorial(query_builders=[SpellingChecker()])
-lsi_model = LSI()
 
-sri = SRISystem(corpus, lsi_model)
+vectorial_model = Vectorial(query_builders=[SpellingChecker(), Synonymous()])
+lsi_model = LSI(query_builders=[SpellingChecker(), Synonymous()])
+boolean_model = Boolean()
+
+sri = SRISystem(corpus, [vectorial_model, lsi_model])
 sri.load(cant_lines)
 
 st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
             unsafe_allow_html=True)
+
+sri_models = {
+    "Vectorial": 0,
+    "LSI": 1,
+}
+
+# Agregar un selectbox para seleccionar el modelo SRI
+selected_model_name = st.selectbox(
+    'Select the information retrieval system (SRI):',
+    options=list(sri_models.keys()),
+    index=0
+)
+
+# Seleccionar el modelo SRI basado en la elección del usuario
+sri.change_selected(sri_models[selected_model_name])
 
 
 def search_filter(search_term: str):
@@ -54,3 +72,6 @@ if search:
 
         for r in result:
             st.write(r.title)
+
+        if len(result) == 0:
+            st.write("No results")

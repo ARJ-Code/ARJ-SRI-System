@@ -3,7 +3,6 @@ from typing import List, Tuple
 import json
 import gensim
 import numpy as np
-from gensim.matutils import corpus2dense
 
 
 class Vectorial(Model):
@@ -11,7 +10,7 @@ class Vectorial(Model):
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
-    def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
         tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         dictionary = gensim.corpora.Dictionary(
             [doc for _, doc in tokenized_docs])
@@ -21,7 +20,7 @@ class Vectorial(Model):
         tfidf = gensim.models.TfidfModel(corpus)
 
         tfidf.save("data/tfidf.model")
-        dictionary.save("data/dictionary.dict")
+        dictionary.save("data/dictionary_vectorial.dict")
         vector_repr = [tfidf[doc] for doc in corpus]
 
         data_build = {}
@@ -29,7 +28,7 @@ class Vectorial(Model):
         for i in range(len(vector_repr)):
             data_build[tokenized_docs[i][0]] = vector_repr[i]
 
-        f = open('data/data_build.json', 'w')
+        f = open('data/data_build_vectorial.json', 'w')
         json.dump(data_build, f)
         f.close()
 
@@ -38,9 +37,9 @@ class Vectorial(Model):
         # Cargar el modelo TF-IDF y el diccionario
         self.tfidf = gensim.models.TfidfModel.load("data/tfidf.model")
         self.dictionary = gensim.corpora.Dictionary.load(
-            "data/dictionary.dict")
+            "data/dictionary_vectorial.dict")
 
-        f = open('data/data_build.json')
+        f = open('data/data_build_vectorial.json')
         self.data_build = json.load(f)
         f.close()
 
@@ -55,8 +54,6 @@ class Vectorial(Model):
 
         # Calcular la representación TF-IDF de la consulta
         query_tfidf = self.tfidf[query_bow]
-
-        # gensim.matutils.cossim(query_lsi, doc_lsi)
 
         # Calcular la similitud entre la consulta y cada documento en el corpus
         similarities = [gensim.matutils.cossim(query_tfidf, self.data_build[doc.title])

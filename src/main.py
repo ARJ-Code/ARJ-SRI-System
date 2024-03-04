@@ -3,6 +3,8 @@ from sri.corpus import MovieCorpus
 from sri.boolean import Boolean
 from sri.lsi import LSI
 import sys
+import nltk
+from sri.sri import SRISystem
 
 
 def main() -> None:
@@ -16,13 +18,13 @@ def main() -> None:
 
     corpus = MovieCorpus()
     vectorial_model = Vectorial()
-    lsi = LSI()
+    lsi_model = LSI()
     boolean_model = Boolean()
 
-    corpus.load(cant_lines)
-    lsi.build(corpus.documents)
-    # vectorial_model.build(corpus.documents)
-    # boolean_model.build(corpus.documents)
+    sri = SRISystem(corpus, [vectorial_model, lsi_model, boolean_model])
+    sri.build(cant_lines)
+
+    nltk.download('wordnet')
 
 
 if __name__ == "__main__":

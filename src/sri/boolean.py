@@ -16,37 +16,23 @@ class Boolean (Model):
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
-    def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
         tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
-        
-        dictionary = gensim.corpora.Dictionary(
-            [doc for _, doc in tokenized_docs])
-        
-        corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
-        dictionary.save("data/boolean_dictionary.dict")
-
-        corpus = [dictionary.doc2bow(doc) for _,doc in tokenized_docs]
-        dictionary.save("data/dictionary.dict")
 
         boolean_data_build = {}
 
-        for i in range (len(tokenized_docs)):
-            boolean_data_build[tokenized_docs[i][0]] = set(tokenized_docs[i][1])
-        
-        
+        for i in range(len(tokenized_docs)):
+            boolean_data_build[tokenized_docs[i][0]] = tokenized_docs[i][1]
+
         f = open('data/boolean_data_build.json', 'w')
         json.dump(boolean_data_build, f)
         f.close()
-    
+
     def _load(self):
-        self.dictionary = gensim.corpora.Dictionary.load(
-            "data/boolean_dictionary.dict")
-        
         f = open('data/boolean_data_build.json')
-        boolean_data_build = json.load(f)
+        self.boolean_data_build = json.load(f)
         f.close()
-        return boolean_data_build
-    
+
     def tokenize_query(self, query: str) -> List[str]:
         exceptions = ["and", "or", "not", "(", ")", "&", "|", "!"]
         query = [token.lemma_ for token in nlp(query.lower(

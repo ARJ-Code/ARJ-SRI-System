@@ -6,6 +6,7 @@ from fuzzywuzzy import process
 
 nlp = spacy.load('en_core_web_sm')
 
+
 class SpellingChecker(QueryBuilder):
     def build(self, tokens: List[str], words: List[str]):
         result = tokens.copy()
@@ -13,12 +14,16 @@ class SpellingChecker(QueryBuilder):
         q = set(tokens)
 
         for token in tokens:
+            if token in words:
+                continue
+
             w = process.extractOne(token, words, score_cutoff=70)
 
             if w and w[0] not in q:
                 result.append(w[0])
-                
+
         return result
+
 
 class BooleanQueryBuilder(QueryBuilder):
     def build(self, tokens: List[str]):
@@ -27,7 +32,7 @@ class BooleanQueryBuilder(QueryBuilder):
         tokens = " ".join(tokens)
         q = nlp(tokens)
 
-        for i,token in q:
+        for i, token in q:
             if token.text in operators:
                 processed_query += token.text
             else:
@@ -36,7 +41,8 @@ class BooleanQueryBuilder(QueryBuilder):
                     processed_query += " &"
             processed_query += " "
 
-        processed_query = processed_query.replace(" and ", " & ").replace(" or ", " | ").replace(" not ", " ! ")
+        processed_query = processed_query.replace(
+            " and ", " & ").replace(" or ", " | ").replace(" not ", " ! ")
         return processed_query
 
 

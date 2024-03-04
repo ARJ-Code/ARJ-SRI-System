@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 import spacy
 import gensim
 
@@ -43,7 +43,7 @@ class Model(ABC):
     def _lemma(tokens: List[str]) -> List[str]:
         return [nlp(token)[0].lemma_ for token in tokens]
 
-    def build(self, documents: List[Document]):
+    def build(self, documents: List[Document]) -> List[Tuple[str, List[str]]]:
         tokenized_docs = [(doc.title, Model._tokenize_doc(
             doc.text.lower())) for doc in documents]
 
@@ -51,13 +51,10 @@ class Model(ABC):
             [doc for _, doc in tokenized_docs])
         dict_voc.save('data/vocabulary.dict')
 
-        self._build(tokenized_docs)
+        return tokenized_docs
 
-    def load(self, documents: List[Document]):
-        dict_voc = gensim.corpora.Dictionary.load(
-            "data/vocabulary.dict")
-        self.vocabulary = list(dict_voc.token2id.keys())
-
+    def load(self, documents: List[Document], vocabulary: List[str]):
+        self.vocabulary = vocabulary
         self.documents = documents
         self._load()
 
@@ -66,7 +63,7 @@ class Model(ABC):
         self._query(Model._lemma(query), cant)
 
     @abstractmethod
-    def _build(self, tokenized_docs: List[List[str]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
         pass
 
     @abstractmethod

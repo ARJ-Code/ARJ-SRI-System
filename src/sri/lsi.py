@@ -3,11 +3,10 @@ from typing import List, Tuple
 import json
 import gensim
 import numpy as np
-from gensim.matutils import corpus2dense
 from gensim.models import LsiModel
-from .vectorial import Vectorial
 
 import numpy as np
+
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -19,12 +18,13 @@ class NpEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
 
+
 class LSI(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
-    def _build(self, tokenized_docs: List[Tuple[str, List[str]]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
         tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         dictionary = gensim.corpora.Dictionary(
             [doc for _, doc in tokenized_docs])
@@ -36,26 +36,26 @@ class LSI(Model):
         lsi = LsiModel(corpus, id2word=dictionary, num_topics=num_topics)
 
         lsi.save("data/lsi.model")
-        dictionary.save("data/dictionary.dict")
+        dictionary.save("data/dictionary_lsi.dict")
 
         # Guardar la representación LSI de cada documento
         vector_repr = [lsi[doc] for doc in corpus]
-     
+
         data_build = {}
 
         for i in range(len(vector_repr)):
             data_build[tokenized_docs[i][0]] = vector_repr[i]
 
-        with open('data/data_build.json', 'w') as f:
-            json.dump(data_build, f,cls=NpEncoder)
+        with open('data/data_build_lsi.json', 'w') as f:
+            json.dump(data_build, f, cls=NpEncoder)
 
     def _load(self):
         # Cargar el modelo LSI y el diccionario
         self.lsi = LsiModel.load("data/lsi.model")
         self.dictionary = gensim.corpora.Dictionary.load(
-            "data/dictionary.dict")
+            "data/dictionary_lsi.dict")
 
-        with open('data/data_build.json') as f:
+        with open('data/data_build_lsi.json') as f:
             self.data_build = json.load(f)
 
     def query(self, query: str, cant: int) -> List[Document]:
@@ -69,7 +69,7 @@ class LSI(Model):
             Model._lemma(query_tokens))]
 
         # Calcular la similitud entre la consulta LSI y cada documento LSI en el corpus
-        similarities = [gensim.matutils.cossim(query_lsi,self.data_build[doc.title])
+        similarities = [gensim.matutils.cossim(query_lsi, self.data_build[doc.title])
                         for doc in self.documents]
 
         # Ordenar las noticias por similitud y seleccionar las más relevantes
