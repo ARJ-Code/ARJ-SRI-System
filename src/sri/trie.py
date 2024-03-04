@@ -56,7 +56,7 @@ class Trie:
         dfs(node, prefix, result)
         return result
 
-    def to_json(self, node: Optional[TrieNode] = None) -> Dict[str, str] or str:
+    def to_json(self, node: Optional[TrieNode] = None) -> Dict[str, str] | str:
         if node is None:
             node = self.root
         if node.is_end_of_word:
@@ -68,7 +68,7 @@ class Trie:
     def from_json(self, json_str: str) -> None:
         self.root = self._from_json(json.loads(json_str))
 
-    def _from_json(self, node: Dict[str, str] or str) -> TrieNode:
+    def _from_json(self, node: Dict[str, str] | str) -> TrieNode:
         if isinstance(node, str):
             return TrieNode(char=node[-1], is_end_of_word=True)
         else:
