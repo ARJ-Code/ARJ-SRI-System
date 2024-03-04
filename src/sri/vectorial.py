@@ -8,7 +8,7 @@ from gensim.matutils import corpus2dense
 
 class Vectorial(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
-        super.__init__()
+        super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
     def __dense_vect(vect, dictionary):
@@ -71,11 +71,13 @@ class Vectorial(Model):
         f.close()
 
     def query(self, query: str, cant: int) -> List[Document]:
+        print(query)
         query_tokens = Model._tokenize_doc(query)
 
         for builder in self.query_builders:
             query_tokens = builder.build(query_tokens, self.vocabulary)
 
+        print(query_tokens)
         # Convertir la consulta en su representación BoW
         query_bow = self.dictionary.doc2bow(Model._lemma(query_tokens))
 
@@ -92,3 +94,5 @@ class Vectorial(Model):
         top_n = [self.documents[ind]
                  for ind in top_n_indices if similarities[ind] != 0]
         top_n.reverse()
+
+        return top_n
