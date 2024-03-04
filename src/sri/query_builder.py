@@ -1,8 +1,10 @@
 from PyDictionary import PyDictionary
 from typing import List
 from .core import QueryBuilder
+import spacy
 from fuzzywuzzy import process
 
+nlp = spacy.load('en_core_web_sm')
 
 class SpellingChecker(QueryBuilder):
     def build(self, tokens: List[str], words: List[str]):
@@ -15,8 +17,27 @@ class SpellingChecker(QueryBuilder):
 
             if w and w[0] not in q:
                 result.append(w[0])
-
+                
         return result
+
+class BooleanQueryBuilder(QueryBuilder):
+    def build(self, tokens: List[str]):
+        processed_query = ""
+        operators = ["and", "or", "not", "(", ")", "&", "|", "!"]
+        tokens = " ".join(tokens)
+        q = nlp(tokens)
+
+        for i,token in q:
+            if token.text in operators:
+                processed_query += token.text
+            else:
+                processed_query += token.text
+                if i+1 < len(q) and q[i+1].text not in operators:
+                    processed_query += " &"
+            processed_query += " "
+
+        processed_query = processed_query.replace(" and ", " & ").replace(" or ", " | ").replace(" not ", " ! ")
+        return processed_query
 
 
 class Synonymous:
