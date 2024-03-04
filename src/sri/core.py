@@ -56,7 +56,7 @@ class Model(ABC):
 
     def load(self, documents: List[Document]):
         dict_voc = gensim.corpora.Dictionary.load(
-            "data/vocabulary,dict")
+            "data/vocabulary.dict")
         self.vocabulary = list(dict_voc.token2id.keys())
 
         self.documents = documents
