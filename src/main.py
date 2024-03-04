@@ -1,6 +1,7 @@
 from sri.vectorial import Vectorial
 from sri.corpus import MovieCorpus
 from sri.boolean import Boolean
+from sri.lsi import LSI
 import sys
 
 
@@ -15,10 +16,12 @@ def main() -> None:
 
     corpus = MovieCorpus()
     vectorial_model = Vectorial()
+    lsi = LSI()
     boolean_model = Boolean()
 
     corpus.load(cant_lines)
-    vectorial_model.build(corpus.documents)
+    lsi.build(corpus.documents)
+    # vectorial_model.build(corpus.documents)
     # boolean_model.build(corpus.documents)
 
 

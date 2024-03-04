@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_searchbox import st_searchbox
 from sri.sri import SRISystem
 from sri.vectorial import Vectorial
+from sri.lsi import LSI
 from sri.corpus import MovieCorpus
 from sri.query_builder import SpellingChecker
 import sys
@@ -15,8 +16,9 @@ except:
 
 corpus = MovieCorpus()
 vectorial_model = Vectorial(query_builders=[SpellingChecker()])
+lsi_model = LSI()
 
-sri = SRISystem(corpus, vectorial_model)
+sri = SRISystem(corpus, lsi_model)
 sri.load(cant_lines)
 
 st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
