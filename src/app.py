@@ -3,7 +3,7 @@ from streamlit_searchbox import st_searchbox
 from sri.sri import SRISystem
 from sri.vectorial import Vectorial
 from sri.corpus import MovieCorpus
-from sri.query_builder import SpellingChecker, Synonymous
+from sri.query_builder import SpellingChecker
 import sys
 
 cant_lines = -1

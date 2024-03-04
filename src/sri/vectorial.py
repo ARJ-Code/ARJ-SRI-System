@@ -71,13 +71,11 @@ class Vectorial(Model):
         f.close()
 
     def query(self, query: str, cant: int) -> List[Document]:
-        print(query)
         query_tokens = Model._tokenize_doc(query)
 
         for builder in self.query_builders:
             query_tokens = builder.build(query_tokens, self.vocabulary)
 
-        print(query_tokens)
         # Convertir la consulta en su representación BoW
         query_bow = self.dictionary.doc2bow(Model._lemma(query_tokens))
 
