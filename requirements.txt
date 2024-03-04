@@ -3,3 +3,4 @@ numpy==1.26.4
 spacy==3.7.2
 streamlit==1.31.1
 streamlit_searchbox==0.1.7
+nltk
