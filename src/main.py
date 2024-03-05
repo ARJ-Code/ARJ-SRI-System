@@ -1,7 +1,7 @@
-from sri.vectorial import Vectorial
-from sri.corpus import MovieCorpus
-from sri.boolean import Boolean
-from sri.lsi import LSI
+from sri.models.vectorial import Vectorial
+from sri.movie.movie_corpus import MovieCorpus
+from sri.models.boolean import Boolean
+from sri.models.lsi import LSI
 import sys
 import nltk
 from sri.sri import SRISystem

@@ -1,5 +1,5 @@
 from typing import List
-from .core import Document
+from ..core import Document
 
 class Movie(Document):
     def __init__(self, 

@@ -1,4 +1,4 @@
-from .synonimous import SynonimousDictionary
+from .utils.synonimous import SynonimousDictionary
 from typing import List
 from .core import QueryBuilder
 import spacy

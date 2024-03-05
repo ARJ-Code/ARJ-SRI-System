@@ -1,4 +1,4 @@
-from .core import Model, QueryBuilder, Document
+from ..core import Model, QueryBuilder, Document
 from typing import List, Tuple
 import json
 import gensim

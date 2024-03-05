@@ -1,8 +1,8 @@
 import csv
 import json
 from typing import List
-from .core import Corpus
-from .movie import Movie
+from ..core import Corpus
+from .movie_doc import Movie
 
 
 class MovieCorpus(Corpus):
