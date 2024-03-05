@@ -25,6 +25,11 @@ class LSI(Model):
         self.query_builders: List[QueryBuilder] = query_builders
 
     def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
+        ''''
+        Construye el modelo LSI
+        tokenized_docs: Documentos tokenizados
+        '''
+
         tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         dictionary = gensim.corpora.Dictionary(
             [doc for _, doc in tokenized_docs])
@@ -50,6 +55,10 @@ class LSI(Model):
             json.dump(data_build, f, cls=NpEncoder)
 
     def _load(self):
+        '''
+        Carga el modelo LSI
+        '''
+
         # Cargar el modelo LSI y el diccionario
         self.lsi = LsiModel.load("data/lsi.model")
         self.dictionary = gensim.corpora.Dictionary.load(
@@ -62,6 +71,15 @@ class LSI(Model):
         self.non_relevant_docs = set()
 
     def __rocchio_algorithm(self, query):
+        '''
+        Algoritmo de Rocchio
+
+        query: Consulta original
+
+        return:
+        query_rocchio: Consulta modificada
+        '''
+
         # Calcular la consulta Rocchio con retroalimentación
         a = 1.0  # Peso de la consulta original
         b = 0.8  # Peso de los documentos relevantes
@@ -84,6 +102,16 @@ class LSI(Model):
         return query_rocchio
 
     def query(self, query: str, cant: int) -> List[Document]:
+        '''
+        Realiza una consulta en el modelo LSI
+
+        query: Consulta
+        cant: Cantidad de documentos a retornar
+        
+        return:
+        top_n: Documentos más relevantes
+        '''
+
         query_tokens = Model._tokenize_doc(query)
 
         for builder in self.query_builders:
