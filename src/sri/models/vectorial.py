@@ -3,7 +3,7 @@ from typing import List, Tuple
 import json
 import gensim
 import numpy as np
-from ..utils.methods import sub_vectors, sum_vectors, mult_scalar, mean
+from ..utils.methods import sum_vectors, mult_scalar, mean
 
 
 class Vectorial(Model):

@@ -6,7 +6,7 @@ import numpy as np
 from gensim.models import LsiModel
 
 import numpy as np
-
+from ..utils.methods import sum_vectors, mult_scalar, mean
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -58,21 +58,47 @@ class LSI(Model):
         with open('data/data_build_lsi.json') as f:
             self.data_build = json.load(f)
 
+        self.relevant_docs = set()
+        self.non_relevant_docs = set()
+
+    def __rocchio_algorithm(self, query):
+        # Calcular la consulta Rocchio con retroalimentación
+        a = 1.0  # Peso de la consulta original
+        b = 0.8  # Peso de los documentos relevantes
+        c = 0.1  # Peso de los documentos no relevantes
+
+        # Convertir los documentos relevantes y no relevantes a su representación BoW
+        relevant_docs_bow = [self.data_build[doc]
+                             for doc in self.relevant_docs]
+        non_relevant_docs_bow = [self.dictionary.doc2bow(Model._lemma(
+            self.data_build[doc])) for doc in self.non_relevant_docs]
+
+        # Calcular la media de los documentos relevantes y no relevantes
+        mean_relevant = mean(relevant_docs_bow)
+        mean_non_relevant = mean(non_relevant_docs_bow)
+
+        # Calcular la consulta Rocchio modificada
+        query_rocchio = sum_vectors(sum_vectors(mult_scalar(query, a),  mult_scalar(
+            mean_relevant, b)), mult_scalar(mean_non_relevant, c))
+        
+        return query_rocchio
+
     def query(self, query: str, cant: int) -> List[Document]:
         query_tokens = Model._tokenize_doc(query)
 
         for builder in self.query_builders:
             query_tokens = builder.build(query_tokens, self.vocabulary)
 
-        # Convertir la consulta en su representación LSI
-        query_lsi = self.lsi[self.dictionary.doc2bow(
-            Model._lemma(query_tokens))]
+        # Convertir la consulta en su representación BoW
+        query_bow = self.dictionary.doc2bow(Model._lemma(query_tokens))
 
-        # Calcular la similitud entre la consulta LSI y cada documento LSI en el corpus
-        similarities = [gensim.matutils.cossim(query_lsi, self.data_build[doc.title])
+        # Convertir la consulta en su representación LSI
+        query_lsi = self.lsi[query_bow]
+        
+        similarities = [gensim.matutils.cossim(self.__rocchio_algorithm(query_lsi), self.data_build[doc.title])
                         for doc in self.documents]
 
-        # Ordenar las noticias por similitud y seleccionar las más relevantes
+        # Ordenar los documentos por similitud y seleccionar las más relevantes
         top_n_indices = np.argsort(similarities)[-cant:]
 
         top_n = [self.documents[ind]
