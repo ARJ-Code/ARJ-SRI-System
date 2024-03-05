@@ -3,6 +3,7 @@ from typing import List, Tuple
 import json
 import gensim
 import numpy as np
+from .utils import sub_vectors, sum_vectors, mult_scalar, mean
 
 
 class Vectorial(Model):
@@ -43,6 +44,31 @@ class Vectorial(Model):
         self.data_build = json.load(f)
         f.close()
 
+        self.relevant_docs = set()
+        self.non_relevant_docs = set()
+
+    def __rocchio_algorithm(self, query):
+        # Calcular la consulta Rocchio con retroalimentación
+        a = 1.0  # Peso de la consulta original
+        b = 0.8  # Peso de los documentos relevantes
+        c = 0.1  # Peso de los documentos no relevantes
+
+        # Convertir los documentos relevantes y no relevantes a su representación BoW
+        relevant_docs_bow = [self.data_build[doc]
+                             for doc in self.relevant_docs]
+        non_relevant_docs_bow = [self.dictionary.doc2bow(Model._lemma(
+            self.data_build[doc])) for doc in self.non_relevant_docs]
+
+        # Calcular la media de los documentos relevantes y no relevantes
+        mean_relevant = mean(relevant_docs_bow)
+        mean_non_relevant = mean(non_relevant_docs_bow)
+
+        # Calcular la consulta Rocchio modificada
+        query_rocchio = sum_vectors(sum_vectors(mult_scalar(query, a),  mult_scalar(
+            mean_relevant, b)), mult_scalar(mean_non_relevant, c))
+        
+        return query_rocchio
+
     def query(self, query: str, cant: int) -> List[Document]:
         query_tokens = Model._tokenize_doc(query)
 
@@ -56,7 +82,7 @@ class Vectorial(Model):
         query_tfidf = self.tfidf[query_bow]
 
         # Calcular la similitud entre la consulta y cada documento en el corpus
-        similarities = [gensim.matutils.cossim(query_tfidf, self.data_build[doc.title])
+        similarities = [gensim.matutils.cossim(self.__rocchio_algorithm(query_tfidf), self.data_build[doc.title])
                         for doc in self.documents]
 
         # Ordenar las noticias por similitud y seleccionar las más relevantes

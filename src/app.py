@@ -21,7 +21,8 @@ vectorial_model = Vectorial(query_builders=[SpellingChecker(), Synonymous()])
 lsi_model = LSI(query_builders=[SpellingChecker(), Synonymous()])
 boolean_model = Boolean()
 
-sri = SRISystem(corpus, [vectorial_model, lsi_model])
+st.session_state.sri = SRISystem(corpus, [vectorial_model, lsi_model])
+sri = st.session_state.sri
 sri.load(cant_lines)
 
 st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
@@ -64,14 +65,38 @@ query = st_searchbox(
     search_filter,
 )
 
-search = st.button("Search")
+search = st.button("🔍 Search")
+
+if 'result' not in st.session_state:
+    st.session_state.result = []
 
 if search:
     if isinstance(query, str):
-        result = sri.query(query)
-
-        for r in result:
-            st.write(r.title)
-
-        if len(result) == 0:
+        st.session_state.result = sri.query(query)
+        if len(st.session_state.result) == 0:
             st.write("No results")
+
+st.markdown("""
+            <style>
+                div[data-testid="column"] {
+                    width: fit-content !important;
+                    flex: unset;
+                }
+                div[data-testid="column"] * {
+                    width: fit-content !important;
+                }
+            </style>
+            """, unsafe_allow_html=True)
+
+for i, r in enumerate(st.session_state.result):
+    # Mostrar el título del resultado
+    st.write(r.title)
+
+    # Crear dos columnas para los botones
+    col1, col2 = st.columns(2)
+
+    if col1.button("✔", key=f"{i},1"):
+        sri.add_relevant(r.title)
+
+    if col2.button("✘", key=f"{i},2"):
+        sri.add_non_relevant(r.title)
