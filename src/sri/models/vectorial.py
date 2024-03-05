@@ -1,9 +1,9 @@
-from .core import Model, QueryBuilder, Document
+from ..core import Model, QueryBuilder, Document
 from typing import List, Tuple
 import json
 import gensim
 import numpy as np
-from .utils import sub_vectors, sum_vectors, mult_scalar, mean
+from ..utils.methods import sub_vectors, sum_vectors, mult_scalar, mean
 
 
 class Vectorial(Model):

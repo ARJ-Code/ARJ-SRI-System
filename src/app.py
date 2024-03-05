@@ -1,10 +1,10 @@
 import streamlit as st
 from streamlit_searchbox import st_searchbox
 from sri.sri import SRISystem
-from sri.vectorial import Vectorial
-from sri.lsi import LSI
-from sri.boolean import Boolean
-from sri.corpus import MovieCorpus
+from sri.models.vectorial import Vectorial
+from sri.models.lsi import LSI
+from sri.models.boolean import Boolean
+from sri.movie.movie_corpus import MovieCorpus
 from sri.query_builder import SpellingChecker, Synonymous
 import sys
 

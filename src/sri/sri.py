@@ -1,6 +1,6 @@
 from .core import Corpus, Model, Document
 from typing import List
-from .trie import Trie
+from .utils.trie import Trie
 import gensim
 import json
 
