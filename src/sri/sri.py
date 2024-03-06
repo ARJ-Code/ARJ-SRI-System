@@ -6,18 +6,17 @@ import json
 
 
 class SRISystem:
-    def __init__(self, corpus: Corpus, models: List[Model]) -> None:
+    def __init__(self, models: List[Model]) -> None:
         self.models: List[Model] = models
-        self.corpus: Corpus = corpus
         self.trie = Trie()
         self.selected = 0
         self.relevant_docs = []
         self.non_relevant_docs = []
 
-    def build(self, cant_lines=-1):
-        self.corpus.load(cant_lines)
+    def build(self, corpus: Corpus, cant=-1):
+        corpus.load(cant)
 
-        tokenized_docs = self.models[0].build(self.corpus.documents)
+        tokenized_docs = self.models[0].build(corpus.documents)
 
         for model in self.models:
             model.build_model(tokenized_docs)
@@ -28,9 +27,7 @@ class SRISystem:
     def change_selected(self, ind: int):
         self.selected = ind
 
-    def load(self, cant_lines: int = -1):
-        self.corpus.load(cant_lines)
-
+    def load(self):
         dict_voc = gensim.corpora.Dictionary.load(
             "data/vocabulary.dict")
         vocabulary = list(dict_voc.token2id.keys())
@@ -57,7 +54,7 @@ class SRISystem:
     def auto_complete(self, word: str, cant: int = 5) -> List[str]:
         return self.trie.find_closest_words(word, cant)
 
-    def query(self, query: str, cant: int = 10) -> List[Tuple[str, int]]:
+    def query(self, query: str, cant: int = 10) -> List[Tuple[str, str, int]]:
         return self.models[self.selected].query(query, cant)
 
     def add_relevant(self, doc: str):

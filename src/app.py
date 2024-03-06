@@ -4,26 +4,16 @@ from sri.sri import SRISystem
 from sri.models.vectorial import Vectorial
 from sri.models.lsi import LSI
 from sri.models.boolean import Boolean
-from sri.movie.movie_corpus import MovieCorpus
 from sri.query_builder import SpellingChecker, Synonymous
-import sys
 
-cant_lines = -1
-try:
-    cant_lines = int(sys.argv[1])
-except:
-    pass
-
-
-corpus = MovieCorpus()
 
 vectorial_model = Vectorial(query_builders=[SpellingChecker(), Synonymous()])
 lsi_model = LSI(query_builders=[SpellingChecker(), Synonymous()])
 boolean_model = Boolean()
 
-st.session_state.sri = SRISystem(corpus, [vectorial_model, lsi_model])
+st.session_state.sri = SRISystem([vectorial_model, lsi_model])
 sri = st.session_state.sri
-sri.load(cant_lines)
+sri.load()
 
 st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
             unsafe_allow_html=True)
@@ -90,7 +80,7 @@ st.markdown("""
 
 for i, r in enumerate(st.session_state.result):
     # Mostrar el título del resultado
-    st.write(r[0])
+    st.write(r[1])
 
     # Crear dos columnas para los botones
     col1, col2 = st.columns(2)

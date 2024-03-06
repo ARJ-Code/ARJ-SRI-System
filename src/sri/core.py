@@ -7,7 +7,8 @@ nlp = spacy.load('en_core_web_sm')
 
 
 class Document(ABC):
-    def __init__(self, title: str, text: str) -> None:
+    def __init__(self, doc_id: str, title: str, text: str) -> None:
+        self.doc_id = doc_id
         self.title: str = title
         self.text: str = text
 
@@ -19,6 +20,12 @@ class Corpus(ABC):
     @abstractmethod
     def load(self, cant: int = -1) -> List[Document]:
         pass
+
+    def get_qrels(self) -> List:
+        return []
+
+    def get_queries(self) -> List:
+        return []
 
 
 class QueryBuilder(ABC):
@@ -44,12 +51,12 @@ class Model(ABC):
     def _lemma(tokens: List[str]) -> List[str]:
         return [nlp(token)[0].lemma_ for token in tokens]
 
-    def build(self, documents: List[Document]) -> List[Tuple[str, List[str]]]:
-        tokenized_docs = [(doc.title, Model._tokenize_doc(
+    def build(self, documents: List[Document]) -> List[Tuple[str, str, List[str]]]:
+        tokenized_docs = [(doc.doc_id, doc.title, Model._tokenize_doc(
             doc.text.lower())) for doc in documents]
 
         dict_voc = gensim.corpora.Dictionary(
-            [doc for _, doc in tokenized_docs])
+            [doc for _, _, doc in tokenized_docs])
         dict_voc.save('data/vocabulary.dict')
 
         return tokenized_docs
@@ -61,11 +68,11 @@ class Model(ABC):
         self._load()
 
     @abstractmethod
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Tuple[str, str, float]]:
         self._query(Model._lemma(query), cant)
 
     @abstractmethod
-    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, str, List[str]]]):
         pass
 
     @abstractmethod

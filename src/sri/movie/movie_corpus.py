@@ -34,11 +34,12 @@ class MovieCorpus(Corpus):
 
             ind = 0
 
-            for row in reader:
+            for i, row in enumerate(reader):
                 if cant == ind:
                     break
 
                 self.documents.append(Movie(
+                    str(i),
                     row['title'],
                     row['overview'],
                     process_genres(row['genres']),
