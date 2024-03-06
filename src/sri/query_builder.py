@@ -28,11 +28,11 @@ class SpellingChecker(QueryBuilder):
 class BooleanQueryBuilder(QueryBuilder):
     def build(self, tokens: List[str]):
         processed_query = ""
-        operators = ["and", "or", "not", "(", ")", "&", "|", "!"]
+        operators = ["and", "or", "not", "(", ")", "&", "|", "~"]
         tokens = " ".join(tokens)
         q = nlp(tokens)
 
-        for i, token in q:
+        for i, token in enumerate(q):
             if token.text in operators:
                 processed_query += token.text
             else:
@@ -42,7 +42,7 @@ class BooleanQueryBuilder(QueryBuilder):
             processed_query += " "
 
         processed_query = processed_query.replace(
-            " and ", " & ").replace(" or ", " | ").replace(" not ", " ! ")
+            " and ", " & ").replace(" or ", " | ").replace(" not ", " ~ ")
         return processed_query
 
 
