@@ -7,11 +7,42 @@ from .movie_doc import Movie
 
 class MovieCorpus(Corpus):
     def __init__(self) -> None:
+        '''
+        Initializes a MovieCorpus instance.
+
+        Attributes:
+        - path: str
+            The path to the movies metadata CSV file.
+        - documents: List[Movie]
+            A list to store Movie objects.
+        '''
         self.path: str = 'data/movies_db/movies_metadata.csv'
         self.documents: List[Movie] = []
 
     def load(self, cant: int = -1) -> List[Movie]:
+        '''
+        Loads movie data from the CSV file.
+
+        Parameters:
+        - cant: int (optional)
+            The number of documents to load (-1 loads all).
+
+        Returns:
+        - List[Movie]
+            A list of Movie objects.
+        '''
         def process_genres(genres_str):
+            '''
+            Processes the genres string and extracts genre names.
+
+            Parameters:
+            - genres_str: str
+                A string containing genre information.
+
+            Returns:
+            - List[str]
+                A list of genre names.
+            '''
             genres_str = genres_str.replace("'", '"')
             # remove the brackets
             genres_str = genres_str[1:-1]
