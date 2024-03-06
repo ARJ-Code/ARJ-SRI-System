@@ -38,7 +38,7 @@ class LSI(Model):
         Build the LSI model.
 
         Args:
-            tokenized_docs: Tokenized documents.
+            A list of tuples containing document information.
         """
 
         tokenized_docs = [(doc_id, t, Model._lemma(doc))
