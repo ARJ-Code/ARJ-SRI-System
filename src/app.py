@@ -34,18 +34,25 @@ sri_models = {
     "boolean": 2,
 }
 
-# Agregar un selectbox para seleccionar el modelo SRI
 selected_model_name = st.selectbox(
     'Select the information retrieval system (SRI):',
     options=list(sri_models.keys()),
     index=0
 )
 
-# Seleccionar el modelo SRI basado en la elección del usuario
 sri.change_selected(sri_models[selected_model_name])
 
 
 def search_filter(search_term: str):
+    """
+    Filters and modifies a search term for auto-completion.
+
+    Args:
+        search_term (str): The input search term.
+
+    Returns:
+        List[str]: A list of modified search terms.
+    """
     to_search = search_term.split(' ')
 
     if len(to_search) == 0:
@@ -90,10 +97,10 @@ st.markdown("""
             """, unsafe_allow_html=True)
 
 for i, r in enumerate(st.session_state.result):
-    # Mostrar el título del resultado
+    # Display the title of the result
     st.write(r.title)
 
-    # Crear dos columnas para los botones
+    # Create two columns for the buttons
     col1, col2 = st.columns(2)
 
     if col1.button("✔", key=f"{i},1"):

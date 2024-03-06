@@ -86,9 +86,9 @@ class LSI(Model):
         query_rocchio: Modified query
         '''
 
-        a = 1.0  # Peso de la consulta original
-        b = 0.8  # Peso de los documentos relevantes
-        c = 0.1  # Peso de los documentos no relevantes
+        a = 1.0  # Weight of the original query
+        b = 0.8  # Weight of relevant documents
+        c = 0.1  # Weight of non-relevant documents
 
         relevant_docs_bow = [self.data_build[doc]
                              for doc in self.relevant_docs]
@@ -98,7 +98,7 @@ class LSI(Model):
         mean_relevant = mean(relevant_docs_bow)
         mean_non_relevant = mean(non_relevant_docs_bow)
 
-        # Calcular la consulta Rocchio modificada
+        # Calculate the modified Rocchio query
         query_rocchio = sum_vectors(sum_vectors(mult_scalar(query, a),  mult_scalar(
             mean_relevant, b)), mult_scalar(mean_non_relevant, c))
         
