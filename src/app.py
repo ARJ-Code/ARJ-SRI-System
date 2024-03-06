@@ -5,7 +5,7 @@ from sri.models.vectorial import Vectorial
 from sri.models.lsi import LSI
 from sri.models.boolean import Boolean
 from sri.movie.movie_corpus import MovieCorpus
-from sri.query_builder import SpellingChecker, Synonymous
+from sri.query_builder import BooleanQueryBuilder, SpellingChecker, Synonymous
 import sys
 
 cant_lines = -1
@@ -19,9 +19,9 @@ corpus = MovieCorpus()
 
 vectorial_model = Vectorial(query_builders=[SpellingChecker(), Synonymous()])
 lsi_model = LSI(query_builders=[SpellingChecker(), Synonymous()])
-boolean_model = Boolean()
+boolean_model = Boolean(query_builders=[BooleanQueryBuilder()])
 
-st.session_state.sri = SRISystem(corpus, [vectorial_model, lsi_model])
+st.session_state.sri = SRISystem(corpus, [vectorial_model, lsi_model, boolean_model])
 sri = st.session_state.sri
 sri.load(cant_lines)
 
@@ -31,6 +31,7 @@ st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
 sri_models = {
     "Vectorial": 0,
     "LSI": 1,
+    "boolean": 2,
 }
 
 # Agregar un selectbox para seleccionar el modelo SRI
