@@ -4,11 +4,6 @@ cant ?= 100
 dev:
 	streamlit run src/app.py
 
-.PHONY: test
-test:
-	python src/main.py
-
-
 .PHONY: build
 build:
 	python src/main.py $(cant)
@@ -21,4 +16,3 @@ metrics:
 .PHONY: models
 models:
 	python -m spacy download en_core_web_sm
-	python -m spacy download es_core_news_sm

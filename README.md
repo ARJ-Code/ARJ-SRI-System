@@ -51,7 +51,12 @@ Para ejecutar el proyecto en tu entorno local, sigue estos pasos:
 
 4. Ejecuta el archivo `app.py` para iniciar la aplicación:
     ```
-    streamlit run src/app.py 100
+    streamlit run src/app.py
+    ```
+
+5. (Opcional) Ejecuta el archivo `metrics.py` para calcular las métricas:
+    ```
+    python src/metrics.py 100
     ```
 
 ### Explicación de la Solución Desarrollada
