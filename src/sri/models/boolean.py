@@ -17,12 +17,14 @@ class Boolean (Model):
         self.query_builders: List[QueryBuilder] = query_builders
 
     def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
-        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
+        tokenized_docs = [(doc_id, t, Model._lemma(doc))
+                          for doc_id, t, doc in tokenized_docs]
 
         boolean_data_build = {}
 
         for i in range(len(tokenized_docs)):
-            boolean_data_build[tokenized_docs[i][0]] = tokenized_docs[i][1]
+            boolean_data_build[tokenized_docs[i][0]
+                               ] = tokenized_docs[i][1], tokenized_docs[i][2]
 
         f = open('data/boolean_data_build.json', 'w')
         json.dump(boolean_data_build, f)
@@ -31,7 +33,8 @@ class Boolean (Model):
     def _load(self):
         f = open('data/boolean_data_build.json')
         self.boolean_data_build = json.load(f)
-        self.boolean_data_build.update({k: set(v) for k,v in self.boolean_data_build.items()})
+        self.boolean_data_build.update(
+            {k: (n, set(v)) for k, (n, v) in self.boolean_data_build.items()})
         f.close()
 
     def tokenize_query(self, query: str) -> List[str]:
@@ -42,23 +45,20 @@ class Boolean (Model):
 
     def query_to_DNF(self, query: str) -> str:
         query = self.tokenize_query(query)
-        print(query)
 
         for builder in self.query_builders:
             query = builder.build(query)
-        print (query)    
+
         query = sympify(query)
         query = to_dnf(query, True)
-        
+
         return str(query)
 
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, _: int) -> List[Tuple[str, str, float]]:
         query = self.query_to_DNF(query)
-        print(query)
         clauses = query.split(" | ")
         matching_docs = []
-        print(clauses)
-        for i in range(len(self.documents)):
+        for k, (n, v) in self.boolean_data_build.items():
             for clause in clauses:
                 if clause[0] == "(":
                     clause = clause[1:-1]
@@ -66,16 +66,14 @@ class Boolean (Model):
                 clause_matched = True
                 for word in clause.split(" & "):
                     if word[0] == "~":
-                        if word[1:] in self.boolean_data_build.get(self.documents[i].title,set()):
+                        if word[1:] in v:
                             clause_matched = False
                             break
                     else:
-                        if word not in self.boolean_data_build.get(self.documents[i].title,set()):
+                        if word not in v:
                             clause_matched = False
                             break
                 if clause_matched:
-                    matching_docs.append(self.documents[i])
+                    matching_docs.append((k, n, 1))
                     break
-        print("a")
-        print(matching_docs)        
         return matching_docs
