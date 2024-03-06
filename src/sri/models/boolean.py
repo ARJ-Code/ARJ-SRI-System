@@ -1,27 +1,51 @@
 from ..core import Model, QueryBuilder, Document
 from typing import List, Tuple
 import json
-import gensim
 import numpy as np
 from gensim.matutils import corpus2dense
 from sympy import sympify, to_dnf
 import spacy
 
-
 nlp = spacy.load('en_core_web_sm')
 
+class Boolean(Model):
+    """
+    A class for building and manipulating boolean models.
 
-class Boolean (Model):
+    Args:
+        query_builders (List[QueryBuilder]): List of query builders.
+
+    Attributes:
+        query_builders (List[QueryBuilder]): List of query builders.
+        boolean_data_build (dict): Dictionary containing tokenized documents.
+
+    Methods:
+        build_model(tokenized_docs: List[Tuple[str, List[str]]]) -> None:
+            Builds the boolean model from tokenized documents.
+        _load() -> None:
+            Loads the boolean data from a JSON file.
+        tokenize_query(query: str) -> List[str]:
+            Tokenizes a query and returns a list of relevant terms.
+        query_to_DNF(query: str) -> str:
+            Converts a query to Disjunctive Normal Form (DNF).
+
+    """
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
 
-    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
-        tokenized_docs = [(doc_id, t, Model._lemma(doc))
-                          for doc_id, t, doc in tokenized_docs]
+    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]) -> None:
+        """
+        Builds the boolean model from tokenized documents.
 
+        Args:
+            tokenized_docs (List[Tuple[str, List[str]]]): List of tokenized documents.
+
+        Returns:
+            None
+        """
+        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         boolean_data_build = {}
-
         for i in range(len(tokenized_docs)):
             boolean_data_build[tokenized_docs[i][0]
                                ] = tokenized_docs[i][1], tokenized_docs[i][2]
@@ -30,7 +54,13 @@ class Boolean (Model):
         json.dump(boolean_data_build, f)
         f.close()
 
-    def _load(self):
+    def _load(self) -> None:
+        """
+        Loads the boolean data from a JSON file.
+
+        Returns:
+            None
+        """
         f = open('data/boolean_data_build.json')
         self.boolean_data_build = json.load(f)
         self.boolean_data_build.update(
@@ -38,23 +68,47 @@ class Boolean (Model):
         f.close()
 
     def tokenize_query(self, query: str) -> List[str]:
+        """
+        Tokenizes a query and returns a list of relevant terms.
+
+        Args:
+            query (str): Input query.
+
+        Returns:
+            List[str]: List of tokenized terms.
+        """
         exceptions = ["and", "or", "not", "(", ")", "&", "|", "~"]
-        query = [token.lemma_ for token in nlp(query.lower(
-        )) if token.lemma_ in exceptions or (not token.is_stop and token.is_alpha)]
+        query = [token.lemma_ for token in nlp(query.lower()) if token.lemma_ in exceptions or (not token.is_stop and token.is_alpha)]
         return query
 
     def query_to_DNF(self, query: str) -> str:
-        query = self.tokenize_query(query)
+        """
+        Converts a query to Disjunctive Normal Form (DNF).
 
+        Args:
+            query (str): Input query.
+
+        Returns:
+            str: Query in DNF.
+        """
+        query = self.tokenize_query(query)
         for builder in self.query_builders:
             query = builder.build(query)
-
         query = sympify(query)
         query = to_dnf(query, True)
-
         return str(query)
 
     def query(self, query: str, _: int) -> List[Tuple[str, str, float]]:
+        """
+        Executes a boolean query and returns a list of matching documents.
+
+        Args:
+            query (str): The input query in Disjunctive Normal Form (DNF).
+            cant (int): The maximum number of matching documents to return.
+
+        Returns:
+            List[Document]: A list of matching documents.
+        """
         query = self.query_to_DNF(query)
         clauses = query.split(" | ")
         matching_docs = []

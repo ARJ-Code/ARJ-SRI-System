@@ -9,6 +9,16 @@ nlp = spacy.load('en_core_web_sm')
 
 class SpellingChecker(QueryBuilder):
     def build(self, tokens: List[str], words: List[str]):
+        """
+        Build a corrected list of tokens by checking against a list of valid words.
+
+        Args:
+            tokens (List[str]): List of input tokens.
+            words (List[str]): List of valid words.
+
+        Returns:
+            List[str]: A list of corrected tokens, including valid words and close matches.
+        """
         result = tokens.copy()
 
         q = set(tokens)
@@ -27,6 +37,15 @@ class SpellingChecker(QueryBuilder):
 
 class BooleanQueryBuilder(QueryBuilder):
     def build(self, tokens: List[str]):
+        """
+        Build a processed boolean query string from a list of tokens.
+
+        Args:
+            tokens (List[str]): List of input tokens.
+
+        Returns:
+            str: Processed boolean query string.
+        """
         processed_query = ""
         operators = ["and", "or", "not", "(", ")", "&", "|", "~"]
         tokens = " ".join(tokens)
@@ -48,6 +67,16 @@ class BooleanQueryBuilder(QueryBuilder):
 
 class Synonymous:
     def build(self, tokens: List[str], words: List[str]):
+        """
+        Build a list of synonymous tokens based on a dictionary of synonyms.
+
+        Args:
+            tokens (List[str]): List of input tokens.
+            words (List[str]): List of valid words.
+
+        Returns:
+            List[str]: A list of tokens, including synonyms.
+        """
         dictionary = SynonimousDictionary()
         result = tokens.copy()
 

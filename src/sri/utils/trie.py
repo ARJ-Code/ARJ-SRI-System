@@ -4,6 +4,13 @@ from typing import Dict, Optional, List
 
 class TrieNode:
     def __init__(self, char: str = '~', is_end_of_word: bool = False) -> None:
+        """
+        Initializes a TrieNode.
+
+        Args:
+            char (str): The character associated with this node.
+            is_end_of_word (bool): Indicates whether this node represents the end of a word.
+        """
         self.char: str = char
         self.children: Dict[str, 'TrieNode'] = {}
         self.is_end_of_word: bool = is_end_of_word
@@ -11,9 +18,18 @@ class TrieNode:
 
 class Trie:
     def __init__(self) -> None:
+        """
+        Initializes a Trie data structure.
+        """
         self.root: TrieNode = TrieNode()
 
     def insert(self, word: str) -> None:
+        """
+        Inserts a word into the Trie.
+
+        Args:
+            word (str): The word to insert.
+        """
         node: TrieNode = self.root
         for char in word:
             if char not in node.children:
@@ -22,6 +38,15 @@ class Trie:
         node.is_end_of_word = True
 
     def search(self, word: str) -> bool:
+        """
+        Searches for a word in the Trie.
+
+        Args:
+            word (str): The word to search for.
+
+        Returns:
+            bool: True if the word exists in the Trie, False otherwise.
+        """
         node: TrieNode = self.root
         for char in word:
             if char not in node.children:
@@ -30,6 +55,15 @@ class Trie:
         return node.is_end_of_word
 
     def starts_with(self, prefix: str) -> bool:
+        """
+        Checks if any word in the Trie starts with the given prefix.
+
+        Args:
+            prefix (str): The prefix to check.
+
+        Returns:
+            bool: True if there is a word with the given prefix, False otherwise.
+        """
         node: TrieNode = self.root
         for char in prefix:
             if char not in node.children:
@@ -38,6 +72,16 @@ class Trie:
         return True
 
     def find_closest_words(self, prefix: str, k: int) -> List[str]:
+        """
+        Finds the closest k words to the given prefix in the Trie.
+
+        Args:
+            prefix (str): The prefix to search for.
+            k (int): The maximum number of closest words to return.
+
+        Returns:
+            List[str]: A list of closest words.
+        """
         node = self.root
         for char in prefix:
             if char not in node.children:
@@ -57,6 +101,15 @@ class Trie:
         return result
 
     def to_json(self, node: Optional[TrieNode] = None) -> Dict[str, str] | str:
+        """
+        Converts the Trie to a JSON representation.
+
+        Args:
+            node (Optional[TrieNode]): The starting node for conversion.
+
+        Returns:
+            Dict[str, str] | str: The JSON representation of the Trie.
+        """
         if node is None:
             node = self.root
         if node.is_end_of_word:
