@@ -108,10 +108,8 @@ class Boolean(Model):
             List[Document]: A list of matching documents.
         """
         query = self.query_to_DNF(query)
-        print(query)
         clauses = query.split(" | ")
         matching_docs = []
-        print(clauses)
         for i in range(len(self.documents)):
             for clause in clauses:
                 if clause[0] == "(":
@@ -130,6 +128,4 @@ class Boolean(Model):
                 if clause_matched:
                     matching_docs.append(self.documents[i])
                     break
-        print("a")
-        print(matching_docs)        
         return matching_docs
