@@ -47,7 +47,9 @@ class Boolean(Model):
         tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
         boolean_data_build = {}
         for i in range(len(tokenized_docs)):
-            boolean_data_build[tokenized_docs[i][0]] = tokenized_docs[i][1]
+            boolean_data_build[tokenized_docs[i][0]
+                               ] = tokenized_docs[i][1], tokenized_docs[i][2]
+
         f = open('data/boolean_data_build.json', 'w')
         json.dump(boolean_data_build, f)
         f.close()
@@ -61,7 +63,8 @@ class Boolean(Model):
         """
         f = open('data/boolean_data_build.json')
         self.boolean_data_build = json.load(f)
-        self.boolean_data_build.update({k: set(v) for k, v in self.boolean_data_build.items()})
+        self.boolean_data_build.update(
+            {k: (n, set(v)) for k, (n, v) in self.boolean_data_build.items()})
         f.close()
 
     def tokenize_query(self, query: str) -> List[str]:
@@ -95,8 +98,7 @@ class Boolean(Model):
         query = to_dnf(query, True)
         return str(query)
 
-
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, _: int) -> List[Tuple[str, str, float]]:
         """
         Executes a boolean query and returns a list of matching documents.
 
@@ -110,7 +112,7 @@ class Boolean(Model):
         query = self.query_to_DNF(query)
         clauses = query.split(" | ")
         matching_docs = []
-        for i in range(len(self.documents)):
+        for k, (n, v) in self.boolean_data_build.items():
             for clause in clauses:
                 if clause[0] == "(":
                     clause = clause[1:-1]
@@ -118,14 +120,14 @@ class Boolean(Model):
                 clause_matched = True
                 for word in clause.split(" & "):
                     if word[0] == "~":
-                        if word[1:] in self.boolean_data_build.get(self.documents[i].title,set()):
+                        if word[1:] in v:
                             clause_matched = False
                             break
                     else:
-                        if word not in self.boolean_data_build.get(self.documents[i].title,set()):
+                        if word not in v:
                             clause_matched = False
                             break
                 if clause_matched:
-                    matching_docs.append(self.documents[i])
+                    matching_docs.append((k, n, 1))
                     break
         return matching_docs

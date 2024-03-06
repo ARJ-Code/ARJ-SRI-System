@@ -20,9 +20,9 @@ def main() -> None:
     corpus = IRDataset("cranfield")
     vectorial_model = Vectorial()
     lsi_model = LSI()
-    # boolean_model = Boolean()
+    boolean_model = Boolean()
 
-    sri = SRISystem([vectorial_model, lsi_model])
+    sri = SRISystem([vectorial_model, lsi_model, boolean_model])
     sri.build(corpus, cant)
 
     nltk.download('wordnet')

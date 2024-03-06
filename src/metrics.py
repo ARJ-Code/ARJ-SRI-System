@@ -14,13 +14,11 @@ try:
 except:
     pass
 
-# corpus = IRDataset("beir/arguana")
 corpus = IRDataset("cranfield")
 corpus.load(cant)
 
 vectorial_model = Vectorial()
 lsi_model = LSI()
-boolean_model = Boolean()
 
 models = [vectorial_model, lsi_model]
 name_models = ['vectorial', 'lsi']
