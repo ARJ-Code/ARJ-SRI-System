@@ -8,6 +8,7 @@ import spacy
 
 nlp = spacy.load('en_core_web_sm')
 
+
 class Boolean(Model):
     """
     A class for building and manipulating boolean models.
@@ -30,6 +31,7 @@ class Boolean(Model):
             Converts a query to Disjunctive Normal Form (DNF).
 
     """
+
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
@@ -44,7 +46,8 @@ class Boolean(Model):
         Returns:
             None
         """
-        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
+        tokenized_docs = [(doc_id, t, Model._lemma(doc))
+                          for doc_id, t, doc in tokenized_docs]
         boolean_data_build = {}
         for i in range(len(tokenized_docs)):
             boolean_data_build[tokenized_docs[i][0]
@@ -78,7 +81,8 @@ class Boolean(Model):
             List[str]: List of tokenized terms.
         """
         exceptions = ["and", "or", "not", "(", ")", "&", "|", "~"]
-        query = [token.lemma_ for token in nlp(query.lower()) if token.lemma_ in exceptions or (not token.is_stop and token.is_alpha)]
+        query = [token.lemma_ for token in nlp(query.lower(
+        )) if token.lemma_ in exceptions or (not token.is_stop and token.is_alpha)]
         return query
 
     def query_to_DNF(self, query: str) -> str:

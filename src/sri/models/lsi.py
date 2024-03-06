@@ -21,7 +21,7 @@ class NpEncoder(json.JSONEncoder):
 
 
 class LSI(Model):
-        
+
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         """
         Initialize an LSI model.
@@ -48,7 +48,7 @@ class LSI(Model):
 
         corpus = [dictionary.doc2bow(doc) for _, _, doc in tokenized_docs]
 
-        num_topics = 100  
+        num_topics = 100
         lsi = LsiModel(corpus, id2word=dictionary, num_topics=num_topics)
 
         lsi.save("data/lsi.model")
@@ -108,7 +108,7 @@ class LSI(Model):
 
         return query_rocchio
 
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Tuple[str, str, float]]:
         """
         Executes a LSI query and returns a list of relevant documents.
 

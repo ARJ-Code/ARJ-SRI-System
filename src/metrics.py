@@ -5,7 +5,8 @@ import sys
 from sri.sri import SRISystem
 from sri.ir_dataset import IRDataset
 from ir_measures import calc_aggregate
-from ir_measures.measures import nDCG, P, RR, AP
+# from ir_measures.measures import nDCG, P, RR, AP
+from ir_measures import *
 
 cant = -1
 
@@ -46,7 +47,7 @@ for i in range(len(models)):
 
     # Calcular las métricas
     metrics = calc_aggregate(
-        [nDCG@10, P@5, RR(rel=2), AP(rel=2)], qrels, results)
+        [P@10, R@10, Rprec(rel=2), nDCG@10, RR(rel=2), AP(rel=2)], qrels, results)
 
     print(f'Model: {name_models[i]}')
     # Imprimir las métricas
