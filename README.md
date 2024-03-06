@@ -79,6 +79,20 @@ Para esta funcionalidad hacemos uso de la estructura de datos Trie, donde tenemo
 8. **Funcionalidad de retroalimentación:**
 En este caso usamos el algoritmo de Roccio, el cual es un método de clasificación de documentos según la relevancia de sus términos. En primer lugar, selecciona un conjunto de documentos de entrenamiento etiquetados y se calculan sus vectores de características. Luego, cuando se presenta un nuevo documento (consulta), también se calcula su vector de características. El algoritmo ajusta los pesos de los términos en función de su relevancia: si un término es relevante, aumenta su peso; si no lo es, lo reduce. Finalmente, se clasifica el documento de consulta según su similitud con los documentos de entrenamiento. Para su aplicación, en la interfaz gráfica luego de mostrar los resultados de una consulta damos la posibilidad de etiquetar documentos para ajustar dichos resultados a las necesidades del usuario.
 
+8. **Expansión de la consulta:**
+Para expandir las consultas usamos 2 herramientas, una es añadiendo sinónimos de los términos de la consulta a partir de un diccionario de sinónimos, y otra es haciendo un chequeo semántico. Para este último verificamos si los tokens de la consulta son válidos y en caso de que no lo sean añadimos los más cercanos teniendo en cuenta la distancia de Levenshtein.
+
+### Métricas
+
+### Aspectos a mejorar
+- Experimentar con diferentes tamaños de espacio semántico (número de dimensiones) para encontrar un equilibrio entre precisión y eficiencia.
+- Considerar la inclusión de sinónimos en las opciones de autocompletado.
+- Evaluar la calidad de los sinónimos utilizados para saber si son realmente relevantes en el dominio de nuestra colección de documentos.
+
+
+
+
+
 
 
 
