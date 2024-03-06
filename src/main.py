@@ -5,24 +5,25 @@ from sri.models.lsi import LSI
 import sys
 import nltk
 from sri.sri import SRISystem
+from sri.ir_dataset import IRDataset
 
 
 def main() -> None:
 
-    cant_lines = -1
+    cant = -1
 
     try:
-        cant_lines = int(sys.argv[1])
+        cant = int(sys.argv[1])
     except:
         pass
 
-    corpus = MovieCorpus()
+    corpus = IRDataset("cranfield")
     vectorial_model = Vectorial()
     lsi_model = LSI()
-    boolean_model = Boolean()
+    # boolean_model = Boolean()
 
-    sri = SRISystem(corpus, [vectorial_model, lsi_model, boolean_model])
-    sri.build(cant_lines)
+    sri = SRISystem([vectorial_model, lsi_model])
+    sri.build(corpus, cant)
 
     nltk.download('wordnet')
 

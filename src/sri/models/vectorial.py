@@ -1,5 +1,5 @@
-from ..core import Model, QueryBuilder, Document
-from typing import List, Tuple
+from ..core import Model, QueryBuilder
+from typing import List, Tuple, Dict
 import json
 import gensim
 import numpy as np
@@ -33,8 +33,9 @@ class Vectorial(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
+        self.data_build: Dict[str, List[float]] = {}
 
-    def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
+    def build_model(self, tokenized_docs: List[Tuple[str, str, List[str]]]):
         """
         Builds the vectorial model from tokenized documents.
 
@@ -44,11 +45,12 @@ class Vectorial(Model):
         Returns:
             None
         """
-        tokenized_docs = [(t, Model._lemma(doc)) for t, doc in tokenized_docs]
+        tokenized_docs = [(doc_id, t, Model._lemma(doc))
+                          for doc_id, t, doc in tokenized_docs]
         dictionary = gensim.corpora.Dictionary(
-            [doc for _, doc in tokenized_docs])
+            [doc for _, _, doc in tokenized_docs])
 
-        corpus = [dictionary.doc2bow(doc) for _, doc in tokenized_docs]
+        corpus = [dictionary.doc2bow(doc) for _, _, doc in tokenized_docs]
 
         tfidf = gensim.models.TfidfModel(corpus)
 
@@ -59,7 +61,8 @@ class Vectorial(Model):
         data_build = {}
 
         for i in range(len(vector_repr)):
-            data_build[tokenized_docs[i][0]] = vector_repr[i]
+            data_build[tokenized_docs[i][0]
+                       ] = tokenized_docs[i][1], vector_repr[i]
 
         f = open('data/data_build_vectorial.json', 'w')
         json.dump(data_build, f)
@@ -96,10 +99,11 @@ class Vectorial(Model):
         b = 0.8  # Weight of relevant documents
         c = 0.1  # Weight of non-relevant documents
 
-        relevant_docs_bow = [self.data_build[doc]
+        # Convertir los documentos relevantes y no relevantes a su representación BoW
+        relevant_docs_bow = [self.data_build[doc][1]
                              for doc in self.relevant_docs]
         non_relevant_docs_bow = [self.dictionary.doc2bow(Model._lemma(
-            self.data_build[doc])) for doc in self.non_relevant_docs]
+            self.data_build[doc][1])) for doc in self.non_relevant_docs]
 
         mean_relevant = mean(relevant_docs_bow)
         mean_non_relevant = mean(non_relevant_docs_bow)
@@ -107,10 +111,10 @@ class Vectorial(Model):
         # Calculate the modified Rocchio query
         query_rocchio = sum_vectors(sum_vectors(mult_scalar(query, a),  mult_scalar(
             mean_relevant, b)), mult_scalar(mean_non_relevant, c))
-        
+
         return query_rocchio
 
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Tuple[str, float]]:
         """
         Executes a vectorial query and returns a list of relevant documents.
 
@@ -130,14 +134,9 @@ class Vectorial(Model):
 
         query_tfidf = self.tfidf[query_bow]
 
-        # Calculate the similarity between the query and each document in the corpus
-        similarities = [gensim.matutils.cossim(self.__rocchio_algorithm(query_tfidf), self.data_build[doc.title])
-                        for doc in self.documents]
+        similarities = [(gensim.matutils.cossim(self.__rocchio_algorithm(query_tfidf), v), k, n)
+                        for k, (n, v) in self.data_build.items()]
 
-        top_n_indices = np.argsort(similarities)[-cant:]
+        similarities.sort(reverse=True)
 
-        top_n = [self.documents[ind]
-                 for ind in top_n_indices if similarities[ind] != 0]
-        top_n.reverse()
-
-        return top_n
+        return [(k, n, v) for v, k, n in similarities[:cant] if v != 0]

@@ -1,12 +1,12 @@
-from .core import Corpus, Model, Document
-from typing import List
+from .core import Corpus, Model
+from typing import List, Tuple
 from .utils.trie import Trie
 import gensim
 import json
 
 
 class SRISystem:
-    def __init__(self, corpus: Corpus, models: List[Model]) -> None:
+    def __init__(self, models: List[Model]) -> None:
         """
         Initializes an SRISystem instance.
 
@@ -15,22 +15,21 @@ class SRISystem:
             models (List[Model]): List of models used in the system.
         """
         self.models: List[Model] = models
-        self.corpus: Corpus = corpus
         self.trie = Trie()
         self.selected = 0
         self.relevant_docs = []
         self.non_relevant_docs = []
 
-    def build(self, cant_lines=-1):
+    def build(self, corpus: Corpus, cant=-1):
         """
         Builds the SRISystem by loading the corpus and constructing models.
 
         Args:
             cant_lines (int, optional): Number of lines to load from the corpus. Defaults to -1 (load all).
         """
-        self.corpus.load(cant_lines)
+        corpus.load(cant)
 
-        tokenized_docs = self.models[0].build(self.corpus.documents)
+        tokenized_docs = self.models[0].build(corpus.documents)
 
         for model in self.models:
             model.build_model(tokenized_docs)
@@ -47,15 +46,11 @@ class SRISystem:
         """
         self.selected = ind
 
-    def load(self, cant_lines: int = -1):
+    def load(self):
         """
         Loads the corpus and relevant/non-relevant documents.
 
-        Args:
-            cant_lines (int, optional): Number of lines to load from the corpus. Defaults to -1 (load all).
         """
-        self.corpus.load(cant_lines)
-
         dict_voc = gensim.corpora.Dictionary.load(
             "data/vocabulary.dict")
         vocabulary = list(dict_voc.token2id.keys())
@@ -70,7 +65,7 @@ class SRISystem:
         f2.close()
 
         for model in self.models:
-            model.load(self.corpus.documents, vocabulary,
+            model.load(vocabulary,
                        self.relevant_docs, self.non_relevant_docs)
 
         self.__create_trie(vocabulary)
@@ -98,7 +93,7 @@ class SRISystem:
         """
         return self.trie.find_closest_words(word, cant)
 
-    def query(self, query: str, cant: int = 10) -> List[Document]:
+    def query(self, query: str, cant: int = 10) -> List[Tuple[str, str, int]]:
         """
         Executes a query using the selected model.
 

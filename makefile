@@ -1,8 +1,8 @@
-cant_lines ?= 100
+cant ?= 100
 
 .PHONY: dev
 dev:
-	streamlit run src/app.py $(cant_lines)
+	streamlit run src/app.py
 
 .PHONY: test
 test:
@@ -11,7 +11,12 @@ test:
 
 .PHONY: build
 build:
-	python src/main.py $(cant_lines)
+	python src/main.py $(cant)
+
+.PHONY: metrics
+metrics:
+	python src/metrics.py $(cant)
+
 
 .PHONY: models
 models:
