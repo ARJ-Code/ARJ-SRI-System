@@ -1,5 +1,5 @@
-from .core import Corpus, Model, Document
-from typing import List
+from .core import Corpus, Model
+from typing import List, Tuple
 from .utils.trie import Trie
 import gensim
 import json
@@ -45,7 +45,7 @@ class SRISystem:
         f2.close()
 
         for model in self.models:
-            model.load(self.corpus.documents, vocabulary,
+            model.load(vocabulary,
                        self.relevant_docs, self.non_relevant_docs)
 
         self.__create_trie(vocabulary)
@@ -57,7 +57,7 @@ class SRISystem:
     def auto_complete(self, word: str, cant: int = 5) -> List[str]:
         return self.trie.find_closest_words(word, cant)
 
-    def query(self, query: str, cant: int = 10) -> List[Document]:
+    def query(self, query: str, cant: int = 10) -> List[Tuple[str, int]]:
         return self.models[self.selected].query(query, cant)
 
     def add_relevant(self, doc: str):

@@ -29,7 +29,6 @@ class QueryBuilder(ABC):
 
 class Model(ABC):
     def __init__(self) -> None:
-        self.documents: List[Document] = []
         self.vocabulary: List[str] = []
         self.relevant_docs = []
         self.non_relevant_docs = []
@@ -55,9 +54,8 @@ class Model(ABC):
 
         return tokenized_docs
 
-    def load(self, documents: List[Document], vocabulary: List[str], relevant_docs, non_relevant_docs):
+    def load(self, vocabulary: List[str], relevant_docs, non_relevant_docs):
         self.vocabulary = vocabulary
-        self.documents = documents
         self.relevant_docs = relevant_docs
         self.non_relevant_docs = non_relevant_docs
         self._load()

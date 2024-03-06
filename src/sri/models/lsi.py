@@ -1,5 +1,5 @@
-from ..core import Model, QueryBuilder, Document
-from typing import List, Tuple
+from ..core import Model, QueryBuilder
+from typing import List, Tuple, Dict
 import json
 import gensim
 import numpy as np
@@ -7,6 +7,7 @@ from gensim.models import LsiModel
 
 import numpy as np
 from ..utils.methods import sum_vectors, mult_scalar, mean
+
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -23,6 +24,7 @@ class LSI(Model):
     def __init__(self, query_builders: List[QueryBuilder] = []) -> None:
         super().__init__()
         self.query_builders: List[QueryBuilder] = query_builders
+        self.data_build: Dict[str, List[float]] = {}
 
     def build_model(self, tokenized_docs: List[Tuple[str, List[str]]]):
         ''''
@@ -98,16 +100,16 @@ class LSI(Model):
         # Calcular la consulta Rocchio modificada
         query_rocchio = sum_vectors(sum_vectors(mult_scalar(query, a),  mult_scalar(
             mean_relevant, b)), mult_scalar(mean_non_relevant, c))
-        
+
         return query_rocchio
 
-    def query(self, query: str, cant: int) -> List[Document]:
+    def query(self, query: str, cant: int) -> List[Tuple[str, float]]:
         '''
         Realiza una consulta en el modelo LSI
 
         query: Consulta
         cant: Cantidad de documentos a retornar
-        
+
         return:
         top_n: Documentos más relevantes
         '''
@@ -122,15 +124,10 @@ class LSI(Model):
 
         # Convertir la consulta en su representación LSI
         query_lsi = self.lsi[query_bow]
-        
-        similarities = [gensim.matutils.cossim(self.__rocchio_algorithm(query_lsi), self.data_build[doc.title])
-                        for doc in self.documents]
 
-        # Ordenar los documentos por similitud y seleccionar las más relevantes
-        top_n_indices = np.argsort(similarities)[-cant:]
+        similarities = [(gensim.matutils.cossim(self.__rocchio_algorithm(query_lsi), v), k)
+                        for k, v in self.data_build.items()]
 
-        top_n = [self.documents[ind]
-                 for ind in top_n_indices if similarities[ind] != 0]
-        top_n.reverse()
+        similarities.sort(reverse=True)
 
-        return top_n
+        return [(k, v) for v, k in similarities[:cant] if v != 0]

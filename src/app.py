@@ -52,11 +52,11 @@ def search_filter(search_term: str):
 
     auto = sri.auto_complete(to_search[-1])
 
-    result = [search_term]
+    result = set([search_term])
 
     for s in auto:
         to_search[-1] = s
-        result.append(' '.join(to_search))
+        result.add(' '.join(to_search))
 
     return result
 
@@ -90,13 +90,13 @@ st.markdown("""
 
 for i, r in enumerate(st.session_state.result):
     # Mostrar el título del resultado
-    st.write(r.title)
+    st.write(r[0])
 
     # Crear dos columnas para los botones
     col1, col2 = st.columns(2)
 
     if col1.button("✔", key=f"{i},1"):
-        sri.add_relevant(r.title)
+        sri.add_relevant(r[0])
 
     if col2.button("✘", key=f"{i},2"):
-        sri.add_non_relevant(r.title)
+        sri.add_non_relevant(r[0])
