@@ -7,15 +7,8 @@ from sri.models.boolean import Boolean
 from sri.movie.movie_corpus import MovieCorpus
 from sri.query_builder import BooleanQueryBuilder, SpellingChecker, Synonymous
 import sys
+from sri.query_builder import SpellingChecker, Synonymous
 
-cant_lines = -1
-try:
-    cant_lines = int(sys.argv[1])
-except:
-    pass
-
-
-corpus = MovieCorpus()
 
 vectorial_model = Vectorial(query_builders=[SpellingChecker(), Synonymous()])
 lsi_model = LSI(query_builders=[SpellingChecker(), Synonymous()])
@@ -23,7 +16,7 @@ boolean_model = Boolean(query_builders=[BooleanQueryBuilder()])
 
 st.session_state.sri = SRISystem(corpus, [vectorial_model, lsi_model, boolean_model])
 sri = st.session_state.sri
-sri.load(cant_lines)
+sri.load()
 
 st.markdown("<h1 style='text-align: center; color: red;'>Moogle ++</h1>",
             unsafe_allow_html=True)
@@ -53,11 +46,11 @@ def search_filter(search_term: str):
 
     auto = sri.auto_complete(to_search[-1])
 
-    result = [search_term]
+    result = set([search_term])
 
     for s in auto:
         to_search[-1] = s
-        result.append(' '.join(to_search))
+        result.add(' '.join(to_search))
 
     return result
 
@@ -91,13 +84,13 @@ st.markdown("""
 
 for i, r in enumerate(st.session_state.result):
     # Mostrar el título del resultado
-    st.write(r.title)
+    st.write(r[1])
 
     # Crear dos columnas para los botones
     col1, col2 = st.columns(2)
 
     if col1.button("✔", key=f"{i},1"):
-        sri.add_relevant(r.title)
+        sri.add_relevant(r[0])
 
     if col2.button("✘", key=f"{i},2"):
-        sri.add_non_relevant(r.title)
+        sri.add_non_relevant(r[0])
